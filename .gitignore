@@ -1,0 +1,5 @@
+.idea/
+bazel-*
+*.interp
+*.tokens
+vendor/
