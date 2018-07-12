@@ -1,0 +1,17 @@
+load("@bazel_gazelle//:def.bzl", "gazelle")
+load("@io_bazel_rules_docker//container:container.bzl", "container_bundle")
+
+gazelle(
+    name = "gazelle",
+    command = "update",
+    external = "vendored",
+    prefix = "github.com/grafodb/grafodb",
+)
+
+container_bundle(
+    name = "package",
+    images = {
+        "grafodb/grafodb:{VERSION}": "//cmd/grafo:docker-image",
+    },
+    stamp = True,
+)

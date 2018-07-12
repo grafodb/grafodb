@@ -1,0 +1,19 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "client.go",
+        "server.go",
+    ],
+    importpath = "github.com/grafodb/grafodb/internal/bootstrap",
+    visibility = ["//:__subpackages__"],
+    deps = [
+        "//internal/cluster:go_default_library",
+        "//internal/director:go_default_library",
+        "//internal/graph:go_default_library",
+        "//internal/server:go_default_library",
+        "//vendor/github.com/rs/zerolog:go_default_library",
+        "//vendor/github.com/rs/zerolog/log:go_default_library",
+    ],
+)

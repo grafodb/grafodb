@@ -1,0 +1,15 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "grafoql.go",
+        "grafoql_base_listener.go",
+        "grafoql_lexer.go",
+        "grafoql_listener.go",
+        "grafoql_parser.go",
+    ],
+    importpath = "github.com/grafodb/grafodb/internal/graph/grafoql",
+    visibility = ["//:__subpackages__"],
+    deps = ["//vendor/github.com/antlr/antlr4/runtime/Go/antlr:go_default_library"],
+)

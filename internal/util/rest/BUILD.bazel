@@ -1,0 +1,17 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "etag.go",
+        "headers.go",
+        "mimetypes.go",
+        "rest.go",
+    ],
+    importpath = "github.com/grafodb/grafodb/internal/util/rest",
+    visibility = ["//:__subpackages__"],
+    deps = [
+        "//internal/util/hash:go_default_library",
+        "//internal/util/json:go_default_library",
+    ],
+)

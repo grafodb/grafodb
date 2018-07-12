@@ -1,0 +1,18 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "schema.go",
+        "schema_base_listener.go",
+        "schema_lexer.go",
+        "schema_listener.go",
+        "schema_parser.go",
+    ],
+    importpath = "github.com/grafodb/grafodb/internal/graph/schema",
+    visibility = ["//:__subpackages__"],
+    deps = [
+        "//internal/util/grammar:go_default_library",
+        "//vendor/github.com/antlr/antlr4/runtime/Go/antlr:go_default_library",
+    ],
+)

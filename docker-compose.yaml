@@ -1,0 +1,39 @@
+version: '3.6'
+services:
+  grafo-1:
+    image: grafodb/grafodb:0.1.0-alpha
+    command: ["server"]
+    environment:
+    - GRAFO_DEBUG=true
+    - GRAFO_DATA_DIR=/data
+#    ports:
+#    - 8000:8000
+#    - 9000:9000
+    volumes:
+      - grafo-data-1:/data
+  grafo-2:
+    image: grafodb/grafodb:0.1.0-alpha
+    command: ["server"]
+    environment:
+    - GRAFO_DEBUG=true
+    - GRAFO_DATA_DIR=/data
+#    ports:
+#    - 8000:8000
+#    - 9000:9000
+    volumes:
+      - grafo-data-2:/data
+  grafo-3:
+    image: grafodb/grafodb:0.1.0-alpha
+    command: ["server"]
+    environment:
+    - GRAFO_DEBUG=true
+    - GRAFO_DATA_DIR=/data
+#    ports:
+#    - 8000:8000
+#    - 9000:9000
+    volumes:
+      - grafo-data-3:/data
+volumes:
+  grafo-data-1:
+  grafo-data-2:
+  grafo-data-3:

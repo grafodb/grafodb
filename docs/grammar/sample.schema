@@ -1,0 +1,19 @@
+schema {
+    type Person {
+        _id ID
+        email string
+        age int
+        location geopoint
+        partner Person
+        friends [Person]
+    }
+
+    type Other {
+        _id ID
+        email string
+        age int
+        location geopoint
+        partner Person
+        partner [Person]
+    }
+}

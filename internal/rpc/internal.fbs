@@ -1,0 +1,9 @@
+table HelloRequest {
+  name:string;
+}
+
+table HelloReply {
+  message:string;
+}
+
+
