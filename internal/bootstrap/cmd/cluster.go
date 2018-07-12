@@ -1,7 +1,11 @@
 package cmd
 
 import (
+	"fmt"
+
+	"github.com/grafodb/grafodb/internal/bootstrap"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 func init() {
@@ -9,7 +13,7 @@ func init() {
 		Use:   "cluster",
 		Short: "Manage the cluster",
 	}
-	clusterCmd.Flags().String(flagServerAddr, defaultServerAddr, flagServerAddrDesc)
+	clusterCmd.Flags().StringP(flagServerAddr, flagServerAddrShort, defaultServerAddr, flagServerAddrDesc)
 	clusterCmd.AddCommand(clusterConfigCommand(), clusterMemberListCommand(), clusterStatusCommand())
 	rootCmd.AddCommand(clusterCmd)
 }
@@ -82,8 +86,11 @@ func clusterStatusCommand() *cobra.Command {
 }
 
 func runClusterMemberList(_ *cobra.Command, _ []string) error {
-	// FIXME: Missing implementation
-	return nil
+	serverAddr, err := parseTCPAddr(viper.GetString(flagServerAddr), defaultRPCPort)
+	if err != nil {
+		return fmt.Errorf("invalid --%s: %s", flagServerAddr, serverAddr)
+	}
+	return bootstrap.NewClientBootstrap(serverAddr).ClusterMemberList()
 }
 
 func runClusterStatus(_ *cobra.Command, _ []string) error {

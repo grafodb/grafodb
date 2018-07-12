@@ -1,0 +1,18 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "cluster.go",
+        "handler.go",
+    ],
+    importpath = "github.com/grafodb/grafodb/internal/server/handler",
+    visibility = ["//:__subpackages__"],
+    deps = [
+        "//internal/cluster:go_default_library",
+        "//internal/director:go_default_library",
+        "//internal/graph:go_default_library",
+        "//internal/rpc:go_default_library",
+        "//vendor/github.com/google/flatbuffers/go",
+    ],
+)

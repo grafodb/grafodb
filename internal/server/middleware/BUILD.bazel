@@ -1,0 +1,17 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "grpc.go",
+        "middleware.go",
+    ],
+    importpath = "github.com/grafodb/grafodb/internal/server/middleware",
+    visibility = ["//:__subpackages__"],
+    deps = [
+        "//internal/util/random:go_default_library",
+        "//vendor/github.com/rs/zerolog:go_default_library",
+        "//vendor/google.golang.org/grpc:go_default_library",
+        "//vendor/google.golang.org/grpc/metadata:go_default_library",
+    ],
+)

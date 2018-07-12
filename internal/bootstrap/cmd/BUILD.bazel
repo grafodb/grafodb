@@ -6,7 +6,6 @@ go_library(
         "cluster.go",
         "flags.go",
         "keygen.go",
-        "query.go",
         "root.go",
         "schema.go",
         "server.go",
@@ -17,7 +16,6 @@ go_library(
     visibility = ["//:__subpackages__"],
     deps = [
         "//internal/bootstrap:go_default_library",
-        "//internal/util/cliutil:go_default_library",
         "//internal/util/random:go_default_library",
         "//vendor/github.com/hashicorp/go-sockaddr/template:go_default_library",
         "//vendor/github.com/mitchellh/go-homedir:go_default_library",

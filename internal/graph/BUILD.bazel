@@ -5,4 +5,9 @@ go_library(
     srcs = ["graph.go"],
     importpath = "github.com/grafodb/grafodb/internal/graph",
     visibility = ["//:__subpackages__"],
+    deps = [
+        "//internal/graph/store:go_default_library",
+        "//internal/util/fs:go_default_library",
+        "//vendor/github.com/rs/zerolog:go_default_library",
+    ],
 )

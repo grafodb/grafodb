@@ -10,7 +10,11 @@ import (
 	"time"
 
 	"github.com/grafodb/grafodb/internal/cluster"
+	"github.com/grafodb/grafodb/internal/director"
 	"github.com/grafodb/grafodb/internal/graph"
+	"github.com/grafodb/grafodb/internal/rpc"
+	"github.com/grafodb/grafodb/internal/server/handler"
+	"github.com/grafodb/grafodb/internal/server/middleware"
 	"github.com/grafodb/grafodb/internal/util/fs"
 	"github.com/rs/zerolog"
 	"google.golang.org/grpc"
@@ -34,29 +38,29 @@ func NewServer(logger *zerolog.Logger, cluster cluster.Cluster, config *Config) 
 		return nil, fmt.Errorf("error creating data dir: %s", rootDataDir)
 	}
 
-	var graphDB graph.Graph
+	var graphService graph.Graph
 	if config.EnableGraph {
 		g, err := graph.NewGraph(logger, rootDataDir)
 		if err != nil {
 			return nil, err
 		}
-		graphDB = g
+		graphService = g
 	}
 
-	var raftDataDir string
+	var directorService director.Director
+	// var raftDataDir string
 	if config.EnableDirector {
-		raftDataDir = filepath.Join(rootDataDir, "raft")
-		if err := fs.EnsureDir(raftDataDir); err != nil {
-			return nil, fmt.Errorf("error creating raft data dir: %s", raftDataDir)
-		}
+		// raftDataDir = filepath.Join(rootDataDir, "raft")
+		// if err := fs.EnsureDir(raftDataDir); err != nil {
+		// 	return nil, fmt.Errorf("error creating raft data dir: %s", raftDataDir)
+		// }
 
 		// TODO: Initialize director service
 	}
 
 	log := logger.With().Str("component", "server").Logger()
 	return &grafoServer{
-		cluster:      cluster,
-		graph:        graphDB,
+		handler:      handler.NewHandler(cluster, directorService, graphService),
 		httpBindAddr: config.HTTPBindAddr,
 		logger:       &log,
 		rpcBindAddr:  config.RPCBindAddr,
@@ -68,8 +72,7 @@ type Server interface {
 }
 
 type grafoServer struct {
-	cluster           cluster.Cluster
-	graph             graph.Graph
+	handler           *handler.Handler
 	httpBindAddr      *net.TCPAddr
 	logger            *zerolog.Logger
 	raftAdvertiseAddr *net.TCPAddr
@@ -84,9 +87,8 @@ func (g *grafoServer) Serve(stopWg *sync.WaitGroup, shutdownCh <-chan struct{}, 
 	go g.startServerHTTP(stopWg, shutdownCh, errCh)
 }
 
-func (g *grafoServer) startRaft(stopWg *sync.WaitGroup, shutdownCh <-chan struct{}, errCh chan<- error) {
-	defer stopWg.Done()
-	// FIXME: Missing implementation
+func (g *grafoServer) SendMessage(ctx context.Context, msg *rpc.Message) (*rpc.Message, error) {
+	return g.handler.Dispatch(ctx, msg)
 }
 
 func (g *grafoServer) startServerHTTP(stopWg *sync.WaitGroup, shutdownCh <-chan struct{}, errCh chan<- error) {
@@ -138,9 +140,12 @@ func (g *grafoServer) startServerRPC(stopWg *sync.WaitGroup, shutdownCh <-chan s
 	defer stopWg.Done()
 
 	grpcServerAddr := g.rpcBindAddr.String()
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(
+		grpc.CustomCodec(rpc.NewMessageCodec()),
+		grpc.UnaryInterceptor(middleware.NewPreFlightRPCInterceptor(g.logger)),
+	)
 
-	// rpc.RegisterGrafoServer(grpcServer, transport.NewTransportRPC(g.store))
+	rpc.RegisterGrafoRPCServer(grpcServer, g)
 
 	startErrCh := make(chan error, 1)
 	doneCh := make(chan struct{}, 1)

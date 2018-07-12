@@ -5,8 +5,6 @@ import (
 	"net"
 	"strings"
 
-	"strconv"
-
 	"github.com/grafodb/grafodb/internal/bootstrap"
 	"github.com/hashicorp/go-sockaddr/template"
 	"github.com/mitchellh/go-homedir"
@@ -29,7 +27,7 @@ func init() {
 	serverCmd.Flags().Bool(flagDebugRaft, false, flagDebugRaftDesc)
 	serverCmd.Flags().Bool(flagDebugSerf, false, flagDebugSerfDesc)
 	serverCmd.Flags().Bool(flagNoDirector, false, flagNoDirectorDesc)
-	serverCmd.Flags().String(flagEncrypt, "", flagEncryptDesc)
+	// serverCmd.Flags().String(flagEncrypt, "", flagEncryptDesc)
 	serverCmd.Flags().Int(flagHTTPPort, defaultHTTPPort, flagHTTPPortDesc)
 	serverCmd.Flags().String(flagJoin, "", flagJoinDesc)
 	serverCmd.Flags().Bool(flagNoGraph, false, flagNoGraphDesc)
@@ -104,20 +102,9 @@ func runServer(_ *cobra.Command, _ []string) error {
 	joinAddrs := make([]*net.TCPAddr, 0)
 	joinArg := viper.GetString(flagJoin)
 	for _, addr := range strings.Split(joinArg, ",") {
-		parts := strings.Split(addr, ":")
-		if len(parts) < 1 || len(parts) > 2 {
-			return fmt.Errorf("invalid join address: %s", addr)
-		}
-
-		tcpAddr := &net.TCPAddr{IP: net.ParseIP(parts[0])}
-		if len(parts) > 1 {
-			port, err := strconv.Atoi(parts[1])
-			if err != nil {
-				return fmt.Errorf("invalid join address port: %d", parts[1])
-			}
-			tcpAddr.Port = port
-		} else {
-			tcpAddr.Port = defaultRPCPort
+		tcpAddr, err := parseTCPAddr(addr, defaultSerfPort)
+		if err != nil {
+			return err
 		}
 		joinAddrs = append(joinAddrs, tcpAddr)
 	}

@@ -17,7 +17,8 @@ import fmt "fmt"
 import math "math"
 
 import (
-	context "golang.org/x/net/context"
+	context "context"
+
 	grpc "google.golang.org/grpc"
 )
 
@@ -60,64 +61,64 @@ var _ grpc.ClientConn
 // is compatible with the grpc package it is being compiled against.
 const _ = grpc.SupportPackageIsVersion4
 
-// Client API for Grafo service
+// Client API for GrafoRPC service
 
-type GrafoClient interface {
-	Send(ctx context.Context, in *Message, opts ...grpc.CallOption) (*Message, error)
+type GrafoRPCClient interface {
+	SendMessage(ctx context.Context, in *Message, opts ...grpc.CallOption) (*Message, error)
 }
 
-type grafoClient struct {
+type grafoRPCClient struct {
 	cc *grpc.ClientConn
 }
 
-func NewGrafoClient(cc *grpc.ClientConn) GrafoClient {
-	return &grafoClient{cc}
+func NewGrafoRPCClient(cc *grpc.ClientConn) GrafoRPCClient {
+	return &grafoRPCClient{cc}
 }
 
-func (c *grafoClient) Send(ctx context.Context, in *Message, opts ...grpc.CallOption) (*Message, error) {
+func (c *grafoRPCClient) SendMessage(ctx context.Context, in *Message, opts ...grpc.CallOption) (*Message, error) {
 	out := new(Message)
-	err := grpc.Invoke(ctx, "/rpc.Grafo/Send", in, out, c.cc, opts...)
+	err := grpc.Invoke(ctx, "/rpc.GrafoRPC/SendMessage", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// Server API for Grafo service
+// Server API for GrafoRPC service
 
-type GrafoServer interface {
-	Send(context.Context, *Message) (*Message, error)
+type GrafoRPCServer interface {
+	SendMessage(context.Context, *Message) (*Message, error)
 }
 
-func RegisterGrafoServer(s *grpc.Server, srv GrafoServer) {
-	s.RegisterService(&_Grafo_serviceDesc, srv)
+func RegisterGrafoRPCServer(s *grpc.Server, srv GrafoRPCServer) {
+	s.RegisterService(&_GrafoRPC_serviceDesc, srv)
 }
 
-func _Grafo_Send_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _GrafoRPC_SendMessage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Message)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(GrafoServer).Send(ctx, in)
+		return srv.(GrafoRPCServer).SendMessage(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/rpc.Grafo/Send",
+		FullMethod: "/rpc.GrafoRPC/SendMessage",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GrafoServer).Send(ctx, req.(*Message))
+		return srv.(GrafoRPCServer).SendMessage(ctx, req.(*Message))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-var _Grafo_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "rpc.Grafo",
-	HandlerType: (*GrafoServer)(nil),
+var _GrafoRPC_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "rpc.GrafoRPC",
+	HandlerType: (*GrafoRPCServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Send",
-			Handler:    _Grafo_Send_Handler,
+			MethodName: "SendMessage",
+			Handler:    _GrafoRPC_SendMessage_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -127,13 +128,13 @@ var _Grafo_serviceDesc = grpc.ServiceDesc{
 func init() { proto.RegisterFile("internal/rpc/rpc.proto", fileDescriptor0) }
 
 var fileDescriptor0 = []byte{
-	// 115 bytes of a gzipped FileDescriptorProto
+	// 119 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0xcb, 0xcc, 0x2b, 0x49,
 	0x2d, 0xca, 0x4b, 0xcc, 0xd1, 0x2f, 0x2a, 0x48, 0x06, 0x61, 0xbd, 0x82, 0xa2, 0xfc, 0x92, 0x7c,
 	0x21, 0xe6, 0xa2, 0x82, 0x64, 0x25, 0x65, 0x2e, 0x76, 0xdf, 0xd4, 0xe2, 0xe2, 0xc4, 0xf4, 0x54,
 	0x21, 0x09, 0x2e, 0xf6, 0x82, 0xc4, 0xca, 0x9c, 0xfc, 0xc4, 0x14, 0x09, 0x46, 0x05, 0x46, 0x0d,
-	0x9e, 0x20, 0x18, 0xd7, 0x48, 0x97, 0x8b, 0xd5, 0xbd, 0x28, 0x31, 0x2d, 0x5f, 0x48, 0x85, 0x8b,
-	0x25, 0x38, 0x35, 0x2f, 0x45, 0x88, 0x47, 0x0f, 0x64, 0x0c, 0x54, 0xa3, 0x14, 0x0a, 0x4f, 0x89,
-	0x21, 0x89, 0x0d, 0x6c, 0xbe, 0x31, 0x20, 0x00, 0x00, 0xff, 0xff, 0x91, 0x2f, 0x36, 0xae, 0x79,
-	0x00, 0x00, 0x00,
+	0x9e, 0x20, 0x18, 0xd7, 0xc8, 0x9c, 0x8b, 0xc3, 0xbd, 0x28, 0x31, 0x2d, 0x3f, 0x28, 0xc0, 0x59,
+	0x48, 0x9b, 0x8b, 0x3b, 0x38, 0x35, 0x2f, 0x05, 0xa6, 0x89, 0x47, 0x0f, 0x64, 0x20, 0x94, 0x27,
+	0x85, 0xc2, 0x53, 0x62, 0x48, 0x62, 0x03, 0xdb, 0x64, 0x0c, 0x08, 0x00, 0x00, 0xff, 0xff, 0x5d,
+	0x30, 0xc8, 0x8f, 0x83, 0x00, 0x00, 0x00,
 }

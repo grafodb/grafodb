@@ -1,0 +1,37 @@
+enum Cmd : uint16 {
+    Ping                = 0,
+    ClusterMemberList   = 1,
+    ClusterStatus       = 2,
+}
+
+table Request {
+    command:Cmd;
+    version:uint8;
+    payload:[ubyte];
+}
+
+table Response {
+    isError:bool = false;
+    command:Cmd;
+    version:uint8;
+    payload:[ubyte];
+}
+
+table ErrorResponse {
+    code:uint16;
+    message:string;
+}
+
+table Member {
+    id:string;
+    addr:string;
+    status:string;
+}
+
+table MemberList {
+    members:[Member] (required);
+}
+
+table ClusterStatus {
+    data:[ubyte];
+}

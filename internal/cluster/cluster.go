@@ -74,7 +74,8 @@ func NewCluster(logger *zerolog.Logger, config *NodeConfig) (Cluster, error) {
 }
 
 type Cluster interface {
-	Join(addr *net.TCPAddr) error
+	Join(addr []*net.TCPAddr) error
+	MemberID() string
 	Members() []MemberInfo
 	Serf() *serf.Serf
 	Serve(stopWg *sync.WaitGroup, shutdownCh <-chan struct{}, errCh chan<- error)
@@ -93,6 +94,10 @@ type cluster struct {
 	startedCh   chan struct{}
 }
 
+func (c *cluster) MemberID() string {
+	return c.memberID
+}
+
 func (c *cluster) Members() []MemberInfo {
 	c.membersLock.RLock()
 	defer c.membersLock.RUnlock()
@@ -104,9 +109,18 @@ func (c *cluster) Members() []MemberInfo {
 	return members
 }
 
-func (c *cluster) Join(addr *net.TCPAddr) error {
-	if _, err := c.serf.Join([]string{addr.String()}, true); err != nil {
-		return err
+func (c *cluster) Join(addrs []*net.TCPAddr) error {
+	selfIP := c.nodeConfig.SerfAdvertiseAddr.IP.String()
+	for _, addr := range addrs {
+		if selfIP == addr.IP.String() {
+			c.logger.Debug().Msg("Skipping own address when joining cluster")
+			continue
+		}
+		c.logger.Debug().Msgf("Attempting to join cluster with address: %s", addr.String())
+		if err := c.joinWithAddr(addr); err != nil {
+			continue
+		}
+		break
 	}
 	return nil
 }
@@ -124,6 +138,13 @@ func (c *cluster) StartedCh() chan struct{} {
 	return c.startedCh
 }
 
+func (c *cluster) joinWithAddr(addr *net.TCPAddr) error {
+	if _, err := c.serf.Join([]string{addr.String()}, true); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (c *cluster) startSerf(stopWg *sync.WaitGroup, shutdownCh <-chan struct{}, errCh chan<- error) {
 	defer stopWg.Done()
 
@@ -138,7 +159,7 @@ func (c *cluster) startSerf(stopWg *sync.WaitGroup, shutdownCh <-chan struct{}, 
 	startFunc := func() {
 		defer close(c.startedCh)
 
-		c.logger.Info().Msgf("Starting serf server on %v", c.nodeConfig.SerfBindAddr.String())
+		c.logger.Debug().Msgf("Starting serf server on %v", c.nodeConfig.SerfBindAddr.String())
 
 		serfConf := serf.DefaultConfig()
 		serfConf.Init()
@@ -163,19 +184,21 @@ func (c *cluster) startSerf(stopWg *sync.WaitGroup, shutdownCh <-chan struct{}, 
 		serfConf.MemberlistConfig.BindPort = c.nodeConfig.SerfBindAddr.Port
 		serfConf.MemberlistConfig.LogOutput = ioutil.Discard
 
-		// if c.serfDebug {
-		serfConf.Logger = stdlog.New(c.logger, "", 0)
-		// } else {
-		// 	serfConf.LogOutput = ioutil.Discard
-		// }
+		if c.nodeConfig.SerfDebug {
+			serfConf.Logger = stdlog.New(c.logger, "", 0)
+		} else {
+			serfConf.LogOutput = ioutil.Discard
+		}
 
-		serfServer, err := serf.Create(serfConf)
-		if err != nil {
+		if serfServer, err := serf.Create(serfConf); err != nil {
 			errCh <- err
 			return
+		} else {
+			c.serf = serfServer
+			c.monitorClusterEvents(shutdownCh)
 		}
-		c.serf = serfServer
-		c.monitorClusterEvents(shutdownCh)
+
+		c.logger.Info().Msgf("Started serf server on %v", c.nodeConfig.SerfBindAddr.String())
 	}
 
 	stopFunc := func() {
@@ -264,9 +287,9 @@ func (c *cluster) addMember(ev serf.MemberEvent) {
 		c.membersLock.Lock()
 		if _, exists := c.members[info.ID]; !exists {
 			if c.memberID == info.ID {
-				c.logger.Info().Msgf("Adding self to pool: %s [%s]", info.ID, info.Addr)
+				c.logger.Debug().Msgf("Adding self to pool: %s [%s]", info.ID, info.Addr)
 			} else {
-				c.logger.Info().Msgf("Adding member to pool: %s [%s]", info.ID, info.Addr)
+				c.logger.Debug().Msgf("Adding member to pool: %s [%s]", info.ID, info.Addr)
 			}
 			c.members[info.ID] = *info
 		}
@@ -284,7 +307,7 @@ func (c *cluster) removeMember(ev serf.MemberEvent) {
 
 		c.membersLock.Lock()
 		if _, exists := c.members[info.ID]; exists {
-			c.logger.Info().Msgf("Removing member from pool: %s [%s]", info.ID, info.Addr)
+			c.logger.Debug().Msgf("Removing member from pool: %s [%s]", info.ID, info.Addr)
 			delete(c.members, info.ID)
 		}
 		c.membersLock.Unlock()
@@ -301,7 +324,7 @@ func (c *cluster) updateMember(ev serf.MemberEvent) {
 
 		c.membersLock.Lock()
 		if _, exists := c.members[info.ID]; exists {
-			c.logger.Info().Msgf("Updating member in pool: %s [%s]", info.ID, info.Addr)
+			c.logger.Debug().Msgf("Updating member in pool: %s [%s]", info.ID, info.Addr)
 			c.members[info.ID] = *info
 		}
 		c.membersLock.Unlock()

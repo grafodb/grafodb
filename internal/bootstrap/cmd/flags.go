@@ -50,7 +50,8 @@ const (
 	flagRaftPortDesc        = "port used for internal communication (raft)"
 	flagRPCPort             = "rpc-port"
 	flagRPCPortDesc         = "port used to provide RPC API"
-	flagServerAddr          = "addr"
+	flagServerAddr          = "server-addr"
+	flagServerAddrShort     = "S"
 	flagServerAddrDesc      = "server address"
 	flagVerbose             = "verbose"
 	flagVerboseDesc         = "enable verbose logging"
@@ -60,12 +61,12 @@ const (
 	defaultBindAddr        = "0.0.0.0"
 	defaultBootstrapExpect = 1
 	defaultClusterID       = "grafodb"
-	defaultSerfPort        = 44014
-	defaultRaftPort        = 44024
 	defaultDataDir         = "~/.grafodb"
-	defaultHTTPPort        = 8444
-	defaultRPCPort         = 9444
+	defaultHTTPPort        = 8000
 	defaultLogFormat       = logFormatConsole
+	defaultRaftPort        = 44014
+	defaultRPCPort         = 9000
+	defaultSerfPort        = 44024
 	logFormatConsole       = "console"
 	logFormatJSON          = "json"
 )

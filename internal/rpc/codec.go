@@ -4,6 +4,10 @@ import (
 	"fmt"
 )
 
+func NewMessageCodec() *MessageCodec {
+	return &MessageCodec{}
+}
+
 type MessageCodec struct{}
 
 func (cb *MessageCodec) Marshal(v interface{}) ([]byte, error) {

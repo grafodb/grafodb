@@ -1,9 +1,0 @@
-table HelloClientRequest {
-  name:string;
-}
-
-table HelloClientReply {
-  message:string;
-}
-
-

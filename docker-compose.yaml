@@ -6,9 +6,10 @@ services:
     environment:
     - GRAFO_DEBUG=true
     - GRAFO_DATA_DIR=/data
-#    ports:
-#    - 8000:8000
-#    - 9000:9000
+    - GRAFO_JOIN=grafo-1,grafo-2,grafo-3
+    ports:
+    - 8000:8000
+    - 9000:9000
     volumes:
       - grafo-data-1:/data
   grafo-2:
@@ -17,9 +18,8 @@ services:
     environment:
     - GRAFO_DEBUG=true
     - GRAFO_DATA_DIR=/data
-#    ports:
-#    - 8000:8000
-#    - 9000:9000
+    - GRAFO_JOIN=grafo-1,grafo-2,grafo-3
+    - GRAFO_NO_DIRECTOR=true
     volumes:
       - grafo-data-2:/data
   grafo-3:
@@ -28,9 +28,8 @@ services:
     environment:
     - GRAFO_DEBUG=true
     - GRAFO_DATA_DIR=/data
-#    ports:
-#    - 8000:8000
-#    - 9000:9000
+    - GRAFO_JOIN=grafo-1,grafo-2,grafo-3
+    - GRAFO_NO_DIRECTOR=true
     volumes:
       - grafo-data-3:/data
 volumes:

@@ -6,6 +6,6 @@ message Message {
     bytes payload = 1;
 }
 
-service Grafo {
-    rpc Send(Message) returns (Message) {}
+service GrafoRPC {
+    rpc SendMessage(Message) returns (Message) {}
 }

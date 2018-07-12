@@ -1,0 +1,16 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "client.go",
+        "model.go",
+    ],
+    importpath = "github.com/grafodb/grafodb/grafo",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//internal/rpc:go_default_library",
+        "//vendor/github.com/google/flatbuffers/go",
+        "//vendor/google.golang.org/grpc:go_default_library",
+    ],
+)

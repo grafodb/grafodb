@@ -93,11 +93,14 @@ func (s *serverBootstrap) Start() error {
 	}
 	c.Serve(&stopWg, s.shutdownCh, startErrCh)
 
-	s.logger.Info().Msg("Waiting for cluster to start...")
+	s.logger.Debug().Msg("Waiting for cluster manager initialization...")
 	<-c.StartedCh()
-	s.logger.Info().Msg("Cluster manager initialized. Bootstrapping server...")
+	s.logger.Debug().Msg("Cluster manager initialized. Bootstrapping server...")
 
-	// TODO: Join other nodes
+	// join other nodes
+	if err := c.Join(cfg.JoinAddrs); err != nil {
+		return err
+	}
 
 	// server
 	serverConfig := &server.Config{
